@@ -105,3 +105,25 @@ Response should follow this JSON schema:
     };
   }
 }
+
+export async function generateCardImage(description, name) {
+  try {
+    const response = await fetch('/api/image_gen', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: `Professional photo of ${description}. ${name ? `This is for ${name}.` : ''} Clear, detailed, centered composition.`,
+        aspect_ratio: "3:2"
+      }),
+    });
+    
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Error generating card image:', error);
+    return null;
+  }
+}
