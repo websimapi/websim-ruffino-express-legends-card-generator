@@ -97,7 +97,6 @@ export async function generateCard() {
     type: cardData.type,
     attributes: cardData.attributes,
     impact: cardData.impact,
-    imageUrl: imageUrl
   };
 
   if (imageUrl) {
@@ -105,21 +104,31 @@ export async function generateCard() {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], `${cardData.name}.png`, { type: 'image/png' });
-      
       const backupImageUrl = await websim.upload(file);
+      
+      // Save both URLs in card data
+      newCardData.imageUrl = imageUrl;
       newCardData.backupImageUrl = backupImageUrl;
-
+      
       const cardImage = document.createElement('img');
       cardImage.className = 'card-image';
       cardImage.src = imageUrl;
       cardImage.alt = cardData.description;
+      cardImage.style.width = '100%';
+      cardImage.style.height = '100%';
+      cardImage.style.objectFit = 'contain';
       
       const imageContainer = card.querySelector('.card-image-container');
+      imageContainer.style.height = 'auto';
+      imageContainer.style.maxHeight = '45%';
+      imageContainer.style.objectFit = 'contain';
       imageContainer.appendChild(cardImage);
 
+      // Save card with both URLs
       await saveCard(newCardData);
     } catch (error) {
       console.error('Error handling image:', error);
+      // Still save card even if backup fails
       await saveCard(newCardData);
     }
   }
@@ -127,7 +136,8 @@ export async function generateCard() {
   // Update card visuals
   const nameElement = card.querySelector('.card-name');
   nameElement.textContent = cardData.name;
-  
+  nameElement.style.fontSize = '0.75em'; 
+
   const typeWrapper = card.querySelector('.type-wrapper');
   const typeDiv = document.createElement('div');
   typeDiv.className = `type-icon ${cardData.type.toLowerCase()}`;
@@ -141,10 +151,16 @@ export async function generateCard() {
 
   const statsElement = card.querySelector('.card-stats');
   statsElement.textContent = cardData.attributes;
-  
-  const descElement = card.querySelector('.effect-description');
-  descElement.textContent = cardData.impact;
-  
+  statsElement.style.fontSize = '0.6em'; 
+
+  const descElement = card.querySelector('.effect-description'); 
+  if (cardData.attributes.length > 30) {
+    descElement.textContent = `${cardData.description}\n\nAttributes: ${cardData.attributes}\n\nEffects: ${cardData.impact}`;
+  } else {
+    descElement.textContent = cardData.description;
+  }
+  descElement.style.fontSize = '0.6em';
+
   cardContainer.appendChild(card);
 
   // Add click handler for submenu toggle
