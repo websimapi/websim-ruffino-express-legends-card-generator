@@ -74,19 +74,16 @@ Response should follow this JSON schema:
         }`;
     }
 
-    const response = await fetch('/api/ai_completion', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt,
-        data: ""
-      }),
+    const completion = await websim.chat.completions.create({
+      messages: [{
+        role: "user",
+        content: prompt
+      }],
+      json: true
     });
+
+    const data = JSON.parse(completion.content);
     
-    const data = await response.json();
     // Ensure type is set
     if (!data.type) {
       data.type = isStaffCard ? "Staff" : "Vehicle";
@@ -108,20 +105,31 @@ Response should follow this JSON schema:
 
 export async function generateCardImage(description, name) {
   try {
-    const response = await fetch('/api/image_gen', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: `Professional photo of ${description}. ${name ? `This is for ${name}.` : ''} Clear, detailed, centered composition.`,
-        aspect_ratio: "3:2"
-      }),
+    const isStaffMember = description.toLowerCase().includes('technician') || 
+                         description.toLowerCase().includes('specialist') ||
+                         description.toLowerCase().includes('relations') ||
+                         description.toLowerCase().includes('managing partner');
+
+    let prompt = '';
+    if (isStaffMember) {
+      // Special handling for specific staff members
+      if (name.toLowerCase().includes('josh')) {
+        prompt = 'Professional headshot photo of a bald male auto technician in work uniform, confident and experienced looking';
+      } else if (name.toLowerCase().includes('rob')) {
+        prompt = 'Professional photo of a large-built male auto technician with scruffy appearance in work uniform, warm and friendly expression';
+      } else {
+        prompt = `Professional headshot photo of an auto repair shop ${description}`;
+      }
+    } else {
+      prompt = `Clear, professional photo of ${description}. ${name ? `This is for ${name}.` : ''} Centered composition with good lighting.`;
+    }
+
+    const result = await websim.imageGen({
+      prompt,
+      aspect_ratio: "3:2"
     });
-    
-    const data = await response.json();
-    return data.url;
+
+    return result.url;
   } catch (error) {
     console.error('Error generating card image:', error);
     return null;
