@@ -16,10 +16,10 @@ export async function getCardDescription() {
         Response should follow this JSON schema:
         {
           name: string; // Card name
-          description: string; // Detailed description
-          type: string; // "Vehicle", "Staff", "Tool", or "Challenge" 
-          attributes: string; // Key stats like difficulty, requirements, or abilities
-          impact: string; // Effect on gameplay
+          description: string; // Detailed description 
+          type: string; // "Vehicle", "Staff", "Tool", or "Challenge"
+          attributes: string; // Key stats for Vehicle/Staff cards, or requirements/rewards for Challenge cards
+          impact: string; // Effects on gameplay mechanics
         }
 
         Example response (generate something completely different):
@@ -41,7 +41,7 @@ export async function getCardDescription() {
       name: 'Error',
       description: 'Failed to generate card description',
       type: 'Unknown',
-      attributes: 'Unknown',
+      attributes: 'Unknown', 
       impact: 'Unknown'
     };
   }
@@ -50,7 +50,7 @@ export async function getCardDescription() {
 export async function generateCardImage(description) {
   try {
     const result = await websim.imageGen({
-      prompt: `Professional style trading card art of ${description}. Digital illustration, clean lines, automotive repair theme, professional appearance`,
+      prompt: `Professional style trading card art of an auto repair shop scene showing ${description}. Digital illustration style, clean lines, automotive repair theme, professional appearance, well-lit garage environment, tools and equipment visible, full scene visible`,
       aspect_ratio: "1:1",
     });
     return result.url;
