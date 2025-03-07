@@ -78,39 +78,28 @@ export async function generateCard() {
   // Get card description
   const cardData = await getCardDescription();
 
+  // Ensure type exists
+  const cardType = cardData.type || 'Unknown';
+
   // Update submenu content
   const statValues = submenu.querySelectorAll('.stat-value');
-  statValues[0].textContent = cardData.name;
-  statValues[1].textContent = cardData.type;
-  statValues[2].textContent = cardData.attributes;
-  statValues[3].textContent = cardData.impact;
+  statValues[0].textContent = cardData.name || 'Unknown';
+  statValues[1].textContent = cardType;
+  statValues[2].textContent = cardData.attributes || 'Unknown';
+  statValues[3].textContent = cardData.impact || 'Unknown';
   
-  submenu.querySelector('.full-description').textContent = cardData.description;
+  submenu.querySelector('.full-description').textContent = cardData.description || 'No description available';
 
   // Generate card image with name context
   const imageUrl = await generateCardImage(cardData.description, cardData.name);
 
-  // Special styling for Rob's cards
-  const isRobCard = cardData.name.includes('Rob');
-  if (isRobCard) {
-    cardInner.classList.add('memorial-card');
-    // Add subtle golden border and memorial styling
-    const cardFront = cardInner.querySelector('.card-front');
-    cardFront.style.border = '2px solid rgba(218, 165, 32, 0.4)';
-    cardFront.style.boxShadow = '0 0 15px rgba(218, 165, 32, 0.2)';
-    
-    // Add memorial ribbon
-    const ribbon = document.createElement('div');
-    ribbon.className = 'memorial-ribbon';
-    ribbon.innerHTML = 'In Memoriam';
-    cardFront.appendChild(ribbon);
-  }
-
-  // Create card data object
+  // Create card data object with guaranteed type
   const newCardData = {
     name: cardData.name,
     description: cardData.description,
-    type: cardData.type,
+    type: cardType,
+    height: cardData.height || 'Unknown',
+    weight: cardData.weight || 'Unknown',
     attributes: cardData.attributes,
     impact: cardData.impact,
   };
@@ -154,14 +143,15 @@ export async function generateCard() {
   nameElement.style.fontSize = '0.75em'; 
 
   const typeWrapper = card.querySelector('.type-wrapper');
+  typeWrapper.innerHTML = ''; // Clear existing content
   const typeDiv = document.createElement('div');
-  typeDiv.className = `type-icon ${cardData.type.toLowerCase()}`;
-  typeDiv.innerHTML = getTypeIcon(cardData.type);
-  typeDiv.title = cardData.type;
+  typeDiv.className = `type-icon ${cardType.toLowerCase()}`;
+  typeDiv.innerHTML = getTypeIcon(cardType);
+  typeDiv.title = cardType;
   typeWrapper.appendChild(typeDiv);
 
   const cardFront = card.querySelector('.card-front');
-  const primaryColor = getTypeColor(cardData.type.toLowerCase());
+  const primaryColor = getTypeColor(cardType.toLowerCase());
   cardFront.style.background = `linear-gradient(135deg, ${primaryColor}26, ${primaryColor}0F 70%)`;
 
   const statsElement = card.querySelector('.card-stats');
@@ -175,6 +165,22 @@ export async function generateCard() {
     descElement.textContent = cardData.description;
   }
   descElement.style.fontSize = '0.6em';
+
+  // Special styling for Rob's cards
+  const isRobCard = cardData.name.includes('Rob');
+  if (isRobCard) {
+    cardInner.classList.add('memorial-card');
+    // Add subtle golden border and memorial styling
+    const cardFront = cardInner.querySelector('.card-front');
+    cardFront.style.border = '2px solid rgba(218, 165, 32, 0.4)';
+    cardFront.style.boxShadow = '0 0 15px rgba(218, 165, 32, 0.2)';
+    
+    // Add memorial ribbon
+    const ribbon = document.createElement('div');
+    ribbon.className = 'memorial-ribbon';
+    ribbon.innerHTML = 'In Memoriam';
+    cardFront.appendChild(ribbon);
+  }
 
   cardContainer.appendChild(card);
 

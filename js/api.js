@@ -39,6 +39,8 @@ Response should follow this JSON schema:
   name: string; // Staff name with role (e.g. "Josh - Master Technician")
   description: string; // Detailed background and personality description 
   type: string; // Always "Staff"
+  height: string; // Experience level (e.g. "Expert Level")
+  weight: string; // Specialty focus (e.g. "Diagnostics")
   attributes: string; // Key skills and specialties
   impact: string; // Special abilities and gameplay effects
 }`;
@@ -53,7 +55,9 @@ Response should follow this JSON schema:
         {
           name: string; // Card name
           description: string; // Detailed background or specifications
-          type: string; // "Vehicle", "Tool", or "Challenge"
+          type: string; // "Vehicle", "Tool", or "Challenge" 
+          height: string; // For vehicles: dimensions, for tools: size class, for challenges: scope
+          weight: string; // For vehicles: weight class, for tools: handling metric, for challenges: difficulty level
           attributes: string; // Key features or stats - keep brief
           impact: string; // Gameplay effects and special abilities
         }
@@ -63,6 +67,8 @@ Response should follow this JSON schema:
           "name": "2020 Chevrolet Tahoe LT",
           "description": "A well-maintained SUV featuring premium brake system upgrades and a recently overhauled transmission. Known for exceptional durability and reliability in challenging service conditions.",
           "type": "Vehicle", 
+          "height": "Full-Size SUV",
+          "weight": "5,500 lbs",
           "attributes": "Durability 8/10 | Premium Brakes | New Transmission",
           "impact": "Can handle two repair tasks per turn | 25% faster service completion"
         }`;
@@ -79,7 +85,12 @@ Response should follow this JSON schema:
         data: ""
       }),
     });
+    
     const data = await response.json();
+    // Ensure type is set
+    if (!data.type) {
+      data.type = isStaffCard ? "Staff" : "Vehicle";
+    }
     return data;
   } catch (error) {
     console.error('Error fetching card description:', error);
@@ -87,34 +98,10 @@ Response should follow this JSON schema:
       name: 'Error',
       description: 'Failed to generate card description',
       type: 'Unknown',
+      height: 'Unknown',
+      weight: 'Unknown',
       attributes: 'Unknown',
       impact: 'Unknown'
     };
-  }
-}
-
-export async function generateCardImage(description, cardName) {
-  try {
-    // Special handling for staff images
-    let promptPrefix = "Professional photo of";
-    let additionalContext = "in an auto repair shop setting. Clean, well-lit garage environment with tools and equipment visible. Photorealistic style with clear full view, no cropping.";
-    
-    if (cardName.includes("Josh")) {
-      promptPrefix = "Professional photo of a bald man as";
-    } else if (cardName.includes("Rob")) {
-      // Special handling for Rob's cards
-      promptPrefix = "Professional memorial photo of a large man with scruffy appearance as";
-      additionalContext += " Respectful, dignified portrait style with warm lighting.";
-    }
-    
-    const result = await websim.imageGen({
-      prompt: `${promptPrefix} ${description} ${additionalContext}`,
-      width: 512,
-      height: 512
-    });
-    return result.url;
-  } catch (error) {
-    console.error('Error generating card image:', error);
-    return null;
   }
 }
