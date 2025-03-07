@@ -1,5 +1,60 @@
 export async function getCardDescription() {
   try {
+    // 50/50 chance of staff vs other card types
+    const isStaffCard = Math.random() < 0.5;
+    
+    let prompt;
+    if (isStaffCard) {
+      prompt = `Generate details for a Ruffino Express Legends staff card. Choose from these staff personas:
+
+1. Elizabeth – Managing Partner: Expert in customer service management and operations
+2. Josh – Master Technician: Advanced diagnostics and repair expert
+3. Liz – Customer Relations Specialist: Communication and customer satisfaction expert 
+4. Rob – Senior Technician: Complex repair and problem-solving specialist
+5. Dylan – Diagnostic Specialist: Expert in vehicle diagnostics and troubleshooting
+
+Response should follow this JSON schema:
+{
+  name: string; // Staff name with role (e.g. "Josh - Master Technician")
+  description: string; // Detailed background and personality description 
+  type: string; // Always "Staff"
+  attributes: string; // Key skills and specialties
+  impact: string; // Special abilities and gameplay effects
+}
+
+Example response:
+{
+  "name": "Elizabeth - Managing Partner",
+  "description": "A charismatic leader who oversees operations with exceptional attention to detail. Known for maintaining high customer satisfaction through clear communication and efficient workflow management.",
+  "type": "Staff",
+  "attributes": "Leadership | Operations | Customer Service", 
+  "impact": "Increases service efficiency 25% | +2 reputation per repair"
+}`;
+    } else {
+      prompt = `Generate a creative description for a new Ruffino Express Legends card. Choose one of these card types:
+        1. Vehicle Card: Including make, model, condition, and special abilities
+        2. Tool & Upgrade Card: Including name and effects
+        3. Service Challenge Card: Including challenge name, difficulty, requirements and rewards
+
+        Response should follow this JSON schema:
+        {
+          name: string; // Card name
+          description: string; // Detailed background or specifications
+          type: string; // "Vehicle", "Tool", or "Challenge"
+          attributes: string; // Key features or stats - keep brief
+          impact: string; // Gameplay effects and special abilities
+        }
+
+        Example Vehicle response:
+        {
+          "name": "2020 Chevrolet Tahoe LT",
+          "description": "A well-maintained SUV featuring premium brake system upgrades and a recently overhauled transmission. Known for exceptional durability and reliability in challenging service conditions.",
+          "type": "Vehicle", 
+          "attributes": "Durability 8/10 | Premium Brakes | New Transmission",
+          "impact": "Can handle two repair tasks per turn | 25% faster service completion"
+        }`;
+    }
+
     const response = await fetch('/api/ai_completion', {
       method: 'POST',
       headers: {
@@ -7,36 +62,7 @@ export async function getCardDescription() {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        prompt: `Generate a creative description for a new Ruffino Express Legends card. Choose one of these card types:
-        1. Vehicle Card: Including make, model, condition, and special abilities
-        2. Staff Card: Including name, role, and unique abilities like Josh (Master Technician) or Elizabeth (Customer Relations Expert)
-        3. Tool & Upgrade Card: Including name and effects
-        4. Service Challenge Card: Including challenge name, difficulty, requirements and rewards
-
-        Response should follow this JSON schema:
-        {
-          name: string; // Card name with role for staff cards (e.g. "Josh - Master Technician")
-          description: string; // Detailed background and personality for staff, or specs/history for vehicles
-          type: string; // "Vehicle", "Staff", "Tool", or "Challenge"
-          attributes: string; // Key abilities or stats - keep brief, put details in description
-          impact: string; // Gameplay effects and special abilities
-        }
-
-        For staff examples:
-        {
-          "name": "Elizabeth - Customer Relations Expert",
-          "description": "A charismatic professional with years of experience in automotive customer service. Known for turning difficult situations into opportunities and maintaining strong client relationships.",
-          "type": "Staff",
-          "attributes": "Client Trust | Communication | Management",
-          "impact": "Boosts satisfaction ratings +20% | Can reroll challenge outcomes"
-        }
-        {
-          "name": "Josh - Master Technician", 
-          "description": "A highly skilled veteran mechanic with over 15 years of experience. Specializes in complex diagnostics and engine rebuilds. Mentors junior staff members.",
-          "type": "Staff",
-          "attributes": "Expert Diagnostics | Leadership | Training",
-          "impact": "Reduces repair time 50% | Prevents one service failure per game"
-        }`,
+        prompt,
         data: ""
       }),
     });
@@ -57,7 +83,7 @@ export async function getCardDescription() {
 export async function generateCardImage(description) {
   try {
     const result = await websim.imageGen({
-      prompt: `Professional automotive repair shop scene showing ${description}. Digital illustration style, clean lines, professional appearance, well-lit garage environment with tools and equipment visible. Clear full view of entire scene without cropping.`,
+      prompt: `Professional photo of ${description} in an auto repair shop setting. Clean, well-lit garage environment with tools and equipment visible. Photorealistic style with clear full view, no cropping.`,
       width: 512,
       height: 512
     });
@@ -67,3 +93,4 @@ export async function generateCardImage(description) {
     return null;
   }
 }
+
