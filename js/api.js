@@ -5,7 +5,25 @@ export async function getCardDescription() {
     
     let prompt;
     if (isStaffCard) {
-      prompt = `Generate details for a Ruffino Express Legends staff card. Choose from these staff personas:
+      // Weighted staff selection
+      const staffRoll = Math.random();
+      let selectedStaff;
+      
+      // Josh and Liz have higher probability (35% each)
+      // Others split remaining 30% (10% each)
+      if (staffRoll < 0.35) {
+        selectedStaff = "Josh";
+      } else if (staffRoll < 0.70) {
+        selectedStaff = "Liz";
+      } else if (staffRoll < 0.80) {
+        selectedStaff = "Elizabeth";
+      } else if (staffRoll < 0.90) {
+        selectedStaff = "Rob";
+      } else {
+        selectedStaff = "Dylan";
+      }
+      
+      prompt = `Generate details for a Ruffino Express Legends staff card focused on ${selectedStaff}. Choose from these staff personas:
 
 1. Elizabeth – Managing Partner: Expert in customer service management and operations
 2. Josh – Master Technician: Advanced diagnostics and repair expert
@@ -93,4 +111,3 @@ export async function generateCardImage(description) {
     return null;
   }
 }
-
