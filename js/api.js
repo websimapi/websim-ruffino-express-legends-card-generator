@@ -22,13 +22,16 @@ export async function getCardDescription() {
       } else {
         selectedStaff = "Dylan";
       }
+
+      // Special handling for Rob's cards
+      const isRobCard = selectedStaff === "Rob";
       
-      prompt = `Generate details for a Ruffino Express Legends staff card focused on ${selectedStaff}. Choose from these staff personas:
+      prompt = `Generate details for a Ruffino Express Legends staff card focused on ${selectedStaff}${isRobCard ? " (In Memoriam)" : ""}. Choose from these staff personas:
 
 1. Elizabeth – Managing Partner: Expert in customer service management and operations
-2. Josh – Master Technician: Advanced diagnostics and repair expert
+2. Josh – Master Technician: Advanced diagnostics and repair expert, bald appearance
 3. Liz – Customer Relations Specialist: Communication and customer satisfaction expert 
-4. Rob – Senior Technician: Complex repair and problem-solving specialist
+4. Rob – Senior Technician (In Memoriam): ${isRobCard ? "Dedicated senior technician remembered for his exceptional skill, friendly demeanor, and ability to handle the most challenging repairs. Large build with a scruffy appearance, he left a lasting impact on the shop and its customers." : "Complex repair and problem-solving specialist"}
 5. Dylan – Diagnostic Specialist: Expert in vehicle diagnostics and troubleshooting
 
 Response should follow this JSON schema:
@@ -38,16 +41,8 @@ Response should follow this JSON schema:
   type: string; // Always "Staff"
   attributes: string; // Key skills and specialties
   impact: string; // Special abilities and gameplay effects
-}
-
-Example response:
-{
-  "name": "Elizabeth - Managing Partner",
-  "description": "A charismatic leader who oversees operations with exceptional attention to detail. Known for maintaining high customer satisfaction through clear communication and efficient workflow management.",
-  "type": "Staff",
-  "attributes": "Leadership | Operations | Customer Service", 
-  "impact": "Increases service efficiency 25% | +2 reputation per repair"
 }`;
+
     } else {
       prompt = `Generate a creative description for a new Ruffino Express Legends card. Choose one of these card types:
         1. Vehicle Card: Including make, model, condition, and special abilities
@@ -98,10 +93,22 @@ Example response:
   }
 }
 
-export async function generateCardImage(description) {
+export async function generateCardImage(description, cardName) {
   try {
+    // Special handling for staff images
+    let promptPrefix = "Professional photo of";
+    let additionalContext = "in an auto repair shop setting. Clean, well-lit garage environment with tools and equipment visible. Photorealistic style with clear full view, no cropping.";
+    
+    if (cardName.includes("Josh")) {
+      promptPrefix = "Professional photo of a bald man as";
+    } else if (cardName.includes("Rob")) {
+      // Special handling for Rob's cards
+      promptPrefix = "Professional memorial photo of a large man with scruffy appearance as";
+      additionalContext += " Respectful, dignified portrait style with warm lighting.";
+    }
+    
     const result = await websim.imageGen({
-      prompt: `Professional photo of ${description} in an auto repair shop setting. Clean, well-lit garage environment with tools and equipment visible. Photorealistic style with clear full view, no cropping.`,
+      prompt: `${promptPrefix} ${description} ${additionalContext}`,
       width: 512,
       height: 512
     });

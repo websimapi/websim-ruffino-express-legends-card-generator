@@ -87,8 +87,24 @@ export async function generateCard() {
   
   submenu.querySelector('.full-description').textContent = cardData.description;
 
-  // Generate card image
-  const imageUrl = await generateCardImage(cardData.description);
+  // Generate card image with name context
+  const imageUrl = await generateCardImage(cardData.description, cardData.name);
+
+  // Special styling for Rob's cards
+  const isRobCard = cardData.name.includes('Rob');
+  if (isRobCard) {
+    cardInner.classList.add('memorial-card');
+    // Add subtle golden border and memorial styling
+    const cardFront = cardInner.querySelector('.card-front');
+    cardFront.style.border = '2px solid rgba(218, 165, 32, 0.4)';
+    cardFront.style.boxShadow = '0 0 15px rgba(218, 165, 32, 0.2)';
+    
+    // Add memorial ribbon
+    const ribbon = document.createElement('div');
+    ribbon.className = 'memorial-ribbon';
+    ribbon.innerHTML = 'In Memoriam';
+    cardFront.appendChild(ribbon);
+  }
 
   // Create card data object
   const newCardData = {
