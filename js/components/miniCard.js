@@ -8,13 +8,13 @@ export function createMiniCard(cardData, isPalaceView = false) {
   miniCard.dataset.cardId = cardData.id;
   miniCard.cardData = cardData;
   
-  const types = cardData.type ? cardData.type.split('/') : cardData.pogetype.split('/');
+  const cardType = cardData.type || cardData.pogetype || 'Unknown';
+  const types = cardType.split('/');
   const primaryType = types[0].toLowerCase().trim();
   const secondaryType = types[1] ? types[1].toLowerCase().trim() : primaryType;
   const primaryColor = getTypeColor(primaryType);
   const secondaryColor = getTypeColor(secondaryType);
   
-  // Different icons for Palace vs Flex
   const buttonIcon = isPalaceView ? `
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M4 6h18V4H4c-1.1 0-2 .9-2 2v11H0v3h14v-3H4V6zm19 2h-6c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h6c.55 0 1-.45 1-1V9c0-.55-.45-1-1-1zm-1 9h-4v-7h4v7z"/>
@@ -68,18 +68,13 @@ export function createMiniCard(cardData, isPalaceView = false) {
       return;
     }
 
-    // Regular card click behavior
     if (!e.target.closest('.delete-overlay')) {
-      // Reset palace state when viewing a card
       setShowingPalace(false); 
       
-      // Load the card
       loadCardToMain(miniCard.cardData);
       
-      // Hide collection viewer
       const viewer = document.querySelector('.collection-viewer');
       if (viewer) {
-        // Reset UI elements
         const palaceToggleBtn = viewer.querySelector('.palace-toggle-btn');
         if (palaceToggleBtn) {
           palaceToggleBtn.classList.remove('active');
@@ -93,13 +88,11 @@ export function createMiniCard(cardData, isPalaceView = false) {
         if (importBtn) importBtn.style.display = '';
         if (exportBtn) exportBtn.style.display = '';
         
-        // Update title
         const title = viewer.querySelector('h2');
         if (title) {
           title.textContent = 'Your PoGeFlex Collection';
         }
         
-        // Hide viewer
         viewer.classList.add('hidden');
       }
     }

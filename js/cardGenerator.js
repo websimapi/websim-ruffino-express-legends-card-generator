@@ -127,24 +127,23 @@ export async function generateCard() {
       newCardData.backupImageUrl = backupImageUrl;
       
       const cardImage = document.createElement('img');
-      cardImage.className = 'card-image';
+      cardImage.className = 'pokemon-image';
       cardImage.src = imageUrl;
       cardImage.alt = cardData.description;
       cardImage.style.width = '100%';
       cardImage.style.height = '100%';
-      cardImage.style.objectFit = 'contain';
+      cardImage.style.objectFit = 'cover';
       
       const imageContainer = card.querySelector('.card-image-container');
-      imageContainer.style.height = 'auto';
+      imageContainer.style.height = '45%';
       imageContainer.style.maxHeight = '45%';
-      imageContainer.style.objectFit = 'contain';
+      imageContainer.style.margin = '22px 0 0 0';
       imageContainer.appendChild(cardImage);
 
       // Save card with both URLs
       await saveCard(newCardData);
     } catch (error) {
       console.error('Error handling image:', error);
-      // Still save card even if backup fails
       await saveCard(newCardData);
     }
   }
