@@ -1,16 +1,24 @@
+// Keep track of previous generations to avoid repetition
+let previousGenerations = {
+  staff: [],
+  vehicle: [],
+  tool: [],
+  challenge: []
+};
+
+// Max items to keep in history
+const MAX_HISTORY = 10;
+
 export async function getCardDescription() {
   try {
-    // 50/50 chance of staff vs other card types
     const isStaffCard = Math.random() < 0.5;
     
     let prompt;
     if (isStaffCard) {
-      // Weighted staff selection
       const staffRoll = Math.random();
       let selectedStaff;
       
       // Josh and Liz have higher probability (35% each)
-      // Others split remaining 30% (10% each)
       if (staffRoll < 0.35) {
         selectedStaff = "Josh";
       } else if (staffRoll < 0.70) {
@@ -23,12 +31,18 @@ export async function getCardDescription() {
         selectedStaff = "Dylan";
       }
 
-      // Special handling for Rob's cards
       const isRobCard = selectedStaff === "Rob";
+
+      // Build negative examples from history
+      const previousExamples = previousGenerations.staff
+        .map(prev => `Previous card:\n${JSON.stringify(prev, null, 2)}`)
+        .join('\n\n');
       
       prompt = `Generate a unique and creative staff card description for ${selectedStaff}${isRobCard ? " (In Memoriam)" : ""} at Ruffino Express Auto Repair.
 
-Craft a completely new and different variation each time - no repetition of previous descriptions.
+Create a card that is distinctly different from these previous generations:
+
+${previousExamples}
 
 For context, here are their roles:
 - Elizabeth: Managing Partner, operations and customer service expert
@@ -37,7 +51,14 @@ For context, here are their roles:
 - Rob: Senior Technician (In Memoriam), remembered for exceptional skill and friendly demeanor
 - Dylan: Diagnostic Specialist, troubleshooting expert
 
-Response must be unique each time and follow this JSON schema:
+Key points to vary:
+- Create unique personality traits and backstory elements
+- Vary their expertise focus and specialties
+- Generate different skill combinations
+- Develop new and creative impact effects
+- Use different terminology and phrasing
+
+Response must follow this JSON schema:
 {
   name: string; // Staff name with role (e.g. "Josh - Master Technician") 
   description: string; // Unique personality traits and background story
@@ -49,10 +70,14 @@ Response must be unique each time and follow this JSON schema:
 }`;
 
     } else {
-      // Get a random card subtype for variety
       const cardTypes = ["Vehicle", "Tool", "Challenge"];
       const selectedType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
       
+      // Get relevant previous generations
+      const previousExamples = previousGenerations[selectedType.toLowerCase()]
+        .map(prev => `Previous card:\n${JSON.stringify(prev, null, 2)}`)
+        .join('\n\n');
+
       const vehicleBrands = [
         "Ford", "Chevrolet", "Toyota", "Honda", "Jeep", "RAM", "Dodge", 
         "Nissan", "Hyundai", "Kia", "Subaru", "Volkswagen", "BMW", "Mercedes-Benz"
@@ -68,20 +93,39 @@ Response must be unique each time and follow this JSON schema:
         "Cooling System", "Exhaust", "Steering", "AC System"
       ];
 
-      prompt = `Generate a unique ${selectedType} card for Ruffino Express Legends auto repair game. 
-      
-Create a completely new card - ensure it's different from any previous generations.
+      const toolCategories = [
+        "Diagnostic Equipment", "Specialty Tools", "Lift Systems",
+        "Power Tools", "Hand Tools", "Safety Equipment"
+      ];
 
-For Vehicle cards: Use combinations from these elements but create unique variations:
+      const challengeTypes = [
+        "Emergency Repairs", "Complex Diagnostics", "Performance Upgrades",
+        "Maintenance Services", "Custom Modifications", "Technical Inspections"
+      ];
+
+      prompt = `Generate a unique ${selectedType} card for Ruffino Express Legends auto repair game.
+
+Create a card that is distinctly different from these previous generations:
+
+${previousExamples}
+
+Available elements to combine creatively:
+${selectedType === 'Vehicle' ? `
 Brands: ${vehicleBrands.join(', ')}
 Types: ${vehicleTypes.join(', ')}
-Common Repairs: ${commonRepairs.join(', ')}
+Common Repairs: ${commonRepairs.join(', ')}` : 
+selectedType === 'Tool' ? `
+Tool Categories: ${toolCategories.join(', ')}` :
+`Challenge Categories: ${challengeTypes.join(', ')}`}
 
-For Tool cards: Create unique shop equipment, diagnostic tools, or specialty repair items.
+Key points to vary:
+- Create unique combinations and scenarios
+- Vary attributes and capabilities
+- Generate different impact effects
+- Use creative terminology and descriptions
+- Develop innovative gameplay mechanics
 
-For Challenge cards: Design interesting repair scenarios with specific requirements and rewards.
-
-Response must follow this JSON schema with unique values each time:
+Response must follow this JSON schema:
 {
   name: string; // Descriptive name appropriate to the type
   description: string; // Detailed unique background info
@@ -90,15 +134,13 @@ Response must follow this JSON schema with unique values each time:
   weight: string; // Vehicle: weight class, Tool: portability, Challenge: difficulty
   attributes: string; // Unique features and capabilities
   impact: string; // Creative gameplay effects specific to this card
-}
-
-Make this card completely unique from any previous generations.`;
+}`;
     }
 
     const completion = await websim.chat.completions.create({
       messages: [{
         role: "system",
-        content: "You are a creative card generator for an auto repair themed card game. Always generate unique, non-repetitive content that varies in creative ways while staying true to the theme."
+        content: "You are a creative card generator for an auto repair themed card game. Generate unique, non-repetitive content that varies substantially from previous generations while staying true to the theme. Each card should feel distinct and original."
       },
       {
         role: "user",
@@ -109,12 +151,12 @@ Make this card completely unique from any previous generations.`;
 
     const data = JSON.parse(completion.content);
     
-    // Ensure type is set
-    if (!data.type) {
-      data.type = isStaffCard ? "Staff" : "Vehicle";
-    }
+    // Store in history and maintain max size
+    const type = data.type.toLowerCase();
+    previousGenerations[type] = [data, ...previousGenerations[type]].slice(0, MAX_HISTORY);
     
     return data;
+
   } catch (error) {
     console.error('Error fetching card description:', error);
     return {
